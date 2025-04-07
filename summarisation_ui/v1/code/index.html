@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/vis-timeline@7.4.9/standalone/umd/vis-timeline-graph2d.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-timeline@7.4.9/styles/vis-timeline-graph2d.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <h2 class="text-2xl font-bold mb-4">Event Timeline</h2>
+    <div id="timeline" class="w-full h-96 border border-gray-300 rounded-lg shadow-sm"></div>
+    <div id="details" class="hidden mt-6 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
+        <table class="w-full border-collapse border border-gray-300 mb-4">
+            <tr>
+                <td class="border px-4 py-2 font-semibold">W</td>
+                <td class="border px-4 py-2" id="detail-w"></td>
+                <td class="border px-4 py-2 font-semibold">Start</td>
+                <td class="border px-4 py-2" id="detail-start"></td>
+                <td class="border px-4 py-2 font-semibold">End</td>
+                <td class="border px-4 py-2" id="detail-end"></td>
+            </tr>
+            <tr>
+                <td class="border px-4 py-2 font-semibold">Summary</td>
+                <td colspan="5" class="border px-4 py-2" id="detail-summary"></td>
+            </tr>
+        </table>
+        <h4 class="text-lg font-semibold mb-2">Original Messages</h4>
+        <table class="w-full border-collapse border border-gray-300">
+            <thead>
+                <tr>
+                    <th class="border px-4 py-2">Timestamp</th>
+                    <th class="border px-4 py-2">Source of Data</th>
+                    <th class="border px-4 py-2">Content</th>
+                    <th class="border px-4 py-2">Sender</th>
+                </tr>
+            </thead>
+            <tbody id="detail-messages"></tbody>
+        </table>
+    </div>
+    
+    <script>
+        async function fetchData() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/get_data');
+                const data = await response.json();
+                displayTimeline(data.nodes);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+        
+        function displayTimeline(nodes) {
+            const container = document.getElementById('timeline');
+            const detailsContainer = document.getElementById('details');
+            const items = nodes.map(node => ({
+                id: node.id,
+                content: `W ${node.id + 1}`,
+                start: new Date(node.window_start),
+                end: new Date(node.window_end)
+            }));
+            
+            const dataset = new vis.DataSet(items);
+            const options = { stack: true, showCurrentTime: true };
+            const timeline = new vis.Timeline(container, dataset, options);
+            
+            timeline.on('select', function (props) {
+                if (props.items.length > 0) {
+                    const node = nodes.find(n => n.id === props.items[0]);
+                    document.getElementById('detail-w').textContent = `W ${node.id + 1}`;
+                    document.getElementById('detail-start').textContent = node.window_start;
+                    document.getElementById('detail-end').textContent = node.window_end;
+                    document.getElementById('detail-summary').textContent = node.summary;
+
+                    const messagesTable = document.getElementById('detail-messages');
+                    messagesTable.innerHTML = node.original_messages.split('\n').map(message => {
+                        const [timestamp, source, content, sender] = message.split('|');
+                        return `<tr>
+                            <td class="border px-4 py-2">${timestamp || ''}</td>
+                            <td class="border px-4 py-2">${source || ''}</td>
+                            <td class="border px-4 py-2">${content || ''}</td>
+                            <td class="border px-4 py-2">${sender || ''}</td>
+                        </tr>`;
+                    }).join('');
+
+                    detailsContainer.classList.remove('hidden');
+                }
+            });
+        }
+        
+        fetchData();
+    </script>
+</body>
+</html>

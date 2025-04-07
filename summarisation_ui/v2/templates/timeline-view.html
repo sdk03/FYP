@@ -1,0 +1,132 @@
+{% extends 'navbar.html' %}
+{% block title %}Timeline View - Dashboard{% endblock %}
+{% block content %}
+
+<div class="flex h-screen bg-gray-100">
+
+    <!-- Side Navigation -->
+    <div class="w-1/6 bg-white shadow-md p-4">
+        <h2 class="text-lg font-bold mb-4">Filter by Time</h2>
+        <form method="GET" action="/timeline-view">
+            <!-- Number Input -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Time Duration</label>
+                <input type="number" name="time_duration" value="{{ time_duration }}" min="1" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <!-- Select Box -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Time Unit</label>
+                <select name="time_unit" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="seconds" {% if time_unit == 'seconds' %}selected{% endif %}>Seconds</option>
+                    <option value="minutes" {% if time_unit == 'minutes' %}selected{% endif %}>Minutes</option>
+                    <option value="hours" {% if time_unit == 'hours' %}selected{% endif %}>Hours</option>
+                    <option value="days" {% if time_unit == 'days' %}selected{% endif %}>Days</option>
+                    <option value="weeks" {% if time_unit == 'weeks' %}selected{% endif %}>Weeks</option>
+                    <option value="months" {% if time_unit == 'months' %}selected{% endif %}>Months</option>
+                    <option value="years" {% if time_unit == 'years' %}selected{% endif %}>Years</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-green-500 text-white py-2 mt-4 rounded">Apply Filters</button>
+        </form>
+    </div>
+
+    <!-- Main Content (Grouped Summaries) -->
+    <div class="w-5/6 p-4 overflow-y-auto ">
+        <h1 class="text-2xl font-bold mb-4">Conversation Summaries</h1>
+        {% if grouped_data %}
+            {% for group in grouped_data %}
+            <div class="mb-8">
+                <table class="w-full bg-white border border-gray-300 text-sm text-gray-700">
+                    <!-- Time Slot Section -->
+                    <thead>
+                      <tr class="bg-gray-200">
+                        <th colspan="5" class="py-2 px-4 text-left">TIME_WINDOW {{loop.index}}</th>
+                      </tr>
+                    </thead>
+                    <tbody >
+                      <tr class="border-b ">
+                        <td class="px-3 py-1 font-medium bg-yellow-100  text-right w-1">FROM:</td>
+                        <td class="px-3 py-1 font-medium bg-yellow-100">
+                          {{ group.Time_From }}
+                        </td>
+                        <td class="px-3 py-1 font-medium bg-yellow-100 text-right">TO:</td>
+                        <td  class="px-3 py-1 font-medium bg-yellow-100">
+                          {{ group.Time_To }}
+                        </td>
+                      </tr>
+                    </tbody>
+                    </table >
+                    <table class="w-full bg-white border border-gray-300 text-sm">
+                    <!-- Conversation Details Section -->
+                    <thead>
+                      <tr class="bg-gray-200">
+                        <th class="py-2 px-4">Convo ID</th>
+                        <th class="py-2 px-4">Duration (seconds)</th>
+                        <th class="py-2 px-4">Message Type</th>
+                        <th class="py-2 px-4">Summary</th>
+                        <th class="py-2 px-4">Extends?</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for conversation in group.Conversations %}
+                        <tr class="border-t border-gray-300 cursor-pointer" onclick="toggleMessages('{{ loop.index }}-{{ group.Time_From }}')">
+                            <td class="py-2 px-4">{{ conversation.Conversation_ID }}</td>
+                            <td class="py-2 px-4">{{ "%.2f"|format(conversation.Duration) }}</td>
+                            <td class="py-2 px-4">{{ conversation.Message_Type }}</td>
+                            <td class="py-2 px-4">{{ conversation.Summary }}</td>
+                            <td class="py-2 px-4">
+                                {% if conversation.Spans_Multiple_Slots %}
+                                <span class="text-red-500 hover:text-red-700" title="This conversation spans {{ conversation.Additional_Slots }} additional time slots">
+                                    ⚡
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr id="{{ loop.index }}-{{ group.Time_From }}" class="hidden">
+                            <td colspan="5" class="p-4">
+                                <table class="w-full bg-yellow-100 border border-gray-300">
+                                    <thead>
+                                        <tr class="bg-yellow-200">
+                                            <th class="py-1 px-2">Timestamp</th>
+                                            <th class="py-1 px-2">From Phone</th>
+                                            <th class="py-1 px-2">To Phone</th>
+                                            <th class="py-1 px-2">Message</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for message in conversation.Messages %}
+                                        <tr class="border-t border-gray-300">
+                                            <td class="py-1 px-2">{{ message.Date_Time }}</td>
+                                            <td class="py-1 px-2">{{ message['From Phone Number'] }}</td>
+                                            <td class="py-1 px-2">{{ message['To Phone Number'] }}</td>
+                                            <td class="py-1 px-2">{{ message.Text }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No conversations found.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- JavaScript for Toggle Messages -->
+<script>
+    function toggleMessages(id) {
+        const messagesRow = document.getElementById(id);
+        messagesRow.classList.toggle('hidden');
+    }
+</script>
+
+{% endblock %}

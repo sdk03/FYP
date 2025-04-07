@@ -1,0 +1,110 @@
+{% extends 'navbar.html' %}
+{% block title %}Platform View - Dashboard{% endblock %}
+{% block content %}
+
+<div class="flex h-screen bg-gray-100">
+
+    <!-- Side Navigation -->
+    <div class="w-1/6 bg-white shadow-md p-4">
+        <h2 class="text-lg font-bold mb-4">Platforms</h2>
+        <form method="GET" action="/platform-view">
+            <!-- Select All / Deselect All Buttons -->
+            <div class="flex justify-between mb-4">
+                <button type="button" onclick="selectAll()" class="bg-blue-500 text-white px-2 py-1 rounded">Select All</button>
+                <button type="button" onclick="deselectAll()" class="bg-red-500 text-white px-2 py-1 rounded">Deselect All</button>
+            </div>
+
+            <!-- Platform Checkboxes -->
+            {% for platform in platforms %}
+            <label class="flex items-center mb-2">
+                <input type="checkbox" name="platforms" value="{{ platform }}" 
+                       {% if platform in selected_platforms %}checked{% endif %} 
+                       class="mr-2">
+                {{ platform }}
+            </label>
+            {% endfor %}
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-green-500 text-white py-2 mt-4 rounded">Apply Filters</button>
+        </form>
+    </div>
+
+    <!-- Main Content (Grouped Summaries) -->
+    <div class="w-5/6 p-4 overflow-y-auto">
+        <h1 class="text-2xl font-bold mb-4">Conversation Summaries</h1>
+        {% if grouped_data %}
+            {% for platform, conversations in grouped_data.items() %}
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold mb-2">{{ platform }}</h2>
+                <table class="w-full bg-white border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="py-2 px-4">Convo ID</th>
+                            <th class="py-2 px-4">Time From</th>
+                            <th class="py-2 px-4">Time To</th>
+                            <th class="py-2 px-4">Duration (seconds)</th>
+                            <th class="py-2 px-4">Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for conversation in conversations %}
+                        <tr class="border-t border-gray-300 cursor-pointer" onclick="toggleMessages('{{ platform }}-{{ conversation.Convo_ID }}')">
+                            <td class="py-2 px-4">{{ conversation.Convo_ID }}</td>
+                            <td class="py-2 px-4">{{ conversation.Time_From }}</td>
+                            <td class="py-2 px-4">{{ conversation.Time_To }}</td>
+                            <td class="py-2 px-4">{{ conversation.Duration }}</td>
+                            <td class="py-2 px-4">{{ conversation.Summary }}</td>
+                        </tr>
+                        <tr id="{{ platform }}-{{ conversation.Convo_ID }}" class="hidden">
+                            <td colspan="5" class="p-4">
+                                <table class="w-full bg-yellow-100 border border-gray-300">
+                                    <thead>
+                                        <tr class="bg-yellow-200">
+                                            <th class="py-1 px-2">Timestamp</th>
+                                            <th class="py-1 px-2">From Phone</th>
+                                            <th class="py-1 px-2">To Phone</th>
+                                            <th class="py-1 px-2">Message</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for message in conversation.Messages %}
+                                        <tr class="border-t border-gray-300">
+                                            <td class="py-1 px-2">{{ message.Date_Time }}</td>
+                                            <td class="py-1 px-2">{{ message['From Phone Number'] }}</td>
+                                            <td class="py-1 px-2">{{ message['To Phone Number'] }}</td>
+                                            <td class="py-1 px-2">{{ message.Text }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No conversations found.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- JavaScript for Toggle Messages -->
+<script>
+    function toggleMessages(id) {
+        const messagesRow = document.getElementById(id);
+        messagesRow.classList.toggle('hidden');
+    }
+
+    function selectAll() {
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = true);
+    }
+
+    function deselectAll() {
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+    }
+</script>
+
+{% endblock %}
