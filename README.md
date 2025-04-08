@@ -14,10 +14,10 @@ The project is divided into two core components:
 
 | Folder | Description |
 |--------|-------------|
-| [autopsy_plugin](./autopsy_plugin/README.md) | Component A; SMS categorization plugin for Autopsy |
-| [summarisation_ui](./summarisation_ui/README.md) | Component B; Local LLM-based chat summarization interfaces |
-| [data_samples](./data_samples/README.md) | Sample datasets and test data |
-| [evaluation_tools](./evaluation_tools/README.md) | Scripts for evaluating categorization and summarization accuracy |
+| autopsy_plugin | Component A; SMS categorization plugin for Autopsy |
+| summarisation_ui | Component B; Local LLM-based chat summarization interfaces |
+| data_samples | Sample datasets and test data |
+| evaluation_tools | Scripts for evaluating categorization and summarization accuracy |
 
 ## 🛠 Installation
 
@@ -28,6 +28,3 @@ cd Digital-Forensics-LLM-Integration
 pip install -r requirements.txt
 
 ```
-
-🔄 Click into each folder to explore more.  
-⏪ [Back to this README](./README.md) from any subfolder.
