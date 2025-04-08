@@ -27,7 +27,7 @@ git clone https://github.com/your-username/Digital-Forensics-LLM-Integration.git
 cd Digital-Forensics-LLM-Integration
 pip install -r requirements.txt
 
----
+```
 
 🔄 Click into each folder to explore more.  
 ⏪ [Back to this README](./README.md) from any subfolder.
